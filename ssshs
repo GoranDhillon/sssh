@@ -1,0 +1,54 @@
+import difflib
+import netmiko
+import getpass
+import netmiko.ConnectHandler
+
+
+
+
+
+
+show = "running-config"
+
+start = "startup-config"
+
+online = ["online-config"]
+
+offline = ["offline-config"]
+
+main = {
+  'device_type':'',
+  'host':'192.186.56.101',
+  'username':'cisco',
+  'password':'cisco',
+  'secret' :'class'
+
+}
+
+print("---script---")
+main["password"] = getpass.getpass("Please enter your password.")
+main["secret"] = getpass.getpass("Please enter device secret.")
+main_type = input("Would you like to connect to an SSH connection (A) or connect to a telnet connection (B)")
+if main_type == "A":
+    main["device_type"] = "cisco_ios"
+    session = netmiko.ConnectHandler(**main)
+    session.enable()
+    commandOutput = session.send_command('show running_config')
+    file = open("config.txt", "w")
+    file.write(commandOutput)
+    file.close()
+    print("File Saved Successfully")
+elif main =="B":
+    main['device_type'] = 'cisco_ios_telnet'
+    session = netmiko.ConnectHandler(**main)
+    session.enable()
+    print(session.send_command('sh ip int br'))
+else:
+    print("Error incorrect input")
+    exit()
+show = session.send_command("sh run")
+diffs = difflib.unified_diff(show, start)
+diffs = difflib.ndiff(online, offline)
+
+for diff in diffs:
+    print(diff, session.send_command("sh run"))
